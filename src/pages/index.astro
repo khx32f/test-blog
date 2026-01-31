@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 5);
+---
+
+<BaseLayout title="Home" description="마크다운으로 작성하는 정적 블로그">
+  <div class="container">
+    <section class="hero">
+      <h1>📝 블로그에 오신 것을 환영합니다</h1>
+      <p class="hero-desc">마크다운으로 글을 작성하고, 태그와 카테고리로 분류된 아름다운 블로그입니다.</p>
+    </section>
+
+    <section class="recent">
+      <h2>최근 글</h2>
+      <div class="card-list">
+        {posts.map((post) => {
+          const date = post.data.pubDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+          const slug = post.data.permalink ?? post.id;
+          return (
+            <article class="card">
+              <a href={`/blog/${slug}/`} class="card-link">
+                <h2>{post.data.title}</h2>
+                <p class="meta">{date}</p>
+                <p class="description">{post.data.description}</p>
+              </a>
+              {(post.data.tags.length > 0 || post.data.categories.length > 0) && (
+                <div class="tags">
+                  {post.data.categories.map((c) => (
+                    <a href={`/categories/${encodeURIComponent(c)}/`} class="category">{c}</a>
+                  ))}
+                  {post.data.tags.slice(0, 3).map((t) => (
+                    <a href={`/tags/${encodeURIComponent(t)}/`} class="tag">{t}</a>
+                  ))}
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+      <p class="more">
+        <a href="/blog/">전체 글 보기 →</a>
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .hero {
+    margin-bottom: 3rem;
+  }
+
+  .hero h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .hero-desc {
+    font-size: 1.125rem;
+    color: var(--color-text-muted);
+  }
+
+  .recent h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .more {
+    margin-top: 1.5rem;
+  }
+
+  .more a {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .more a:hover {
+    color: var(--color-accent-hover);
+  }
+</style>

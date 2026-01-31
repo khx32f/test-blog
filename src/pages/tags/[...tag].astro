@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const tagSet = new Set<string>();
+  posts.forEach((p) => p.data.tags.forEach((t) => tagSet.add(t)));
+
+  return Array.from(tagSet).map((tag) => ({
+    params: { tag },
+    props: { tag },
+  }));
+}
+
+const { tag } = Astro.props;
+const decodedTag = decodeURIComponent(tag);
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft && data.tags.includes(decodedTag)))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<BaseLayout title={`태그: ${decodedTag}`} description={`${decodedTag} 태그가 포함된 글 목록`}>
+  <div class="container">
+    <h1>태그: {decodedTag}</h1>
+    <p class="subtitle">{posts.length}개의 글</p>
+
+    <div class="card-list">
+      {posts.map((post) => {
+        const date = post.data.pubDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        const slug = post.data.permalink ?? post.id;
+        return (
+          <article class="card">
+            <a href={`/blog/${slug}/`} class="card-link">
+              <h2>{post.data.title}</h2>
+              <p class="meta">{date}</p>
+              <p class="description">{post.data.description}</p>
+            </a>
+            <div class="tags">
+              {post.data.categories.map((c) => (
+                <a href={`/categories/${encodeURIComponent(c)}/`} class="category">{c}</a>
+              ))}
+              {post.data.tags.map((t) => (
+                <a href={`/tags/${encodeURIComponent(t)}/`} class="tag">{t}</a>
+              ))}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+
+    <p class="back">
+      <a href="/blog/">← 글 목록으로</a>
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .back {
+    margin-top: 2rem;
+  }
+
+  .back a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .back a:hover {
+    color: var(--color-accent-hover);
+  }
+</style>

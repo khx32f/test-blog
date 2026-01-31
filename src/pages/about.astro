@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About" description="블로그 소개">
+  <div class="container">
+    <article class="about prose">
+      <h1>About</h1>
+      <p>
+        이 블로그는 <strong>Astro</strong>로 만든 정적 사이트입니다. GitHub Pages에 호스팅되며,
+        마크다운으로 글을 작성할 수 있습니다.
+      </p>
+      <h2>기능</h2>
+      <ul>
+        <li>정적 HTML 빌드 — GitHub Pages에 최적화</li>
+        <li>마크다운 작성 — 코드 블록, 표, 인용문 지원</li>
+        <li>메뉴: Home, About, Blog</li>
+        <li>월별 글 관리 — content/blog/2025-01/ 형식</li>
+        <li>태그 & 카테고리 — 글 분류 및 필터링</li>
+      </ul>
+      <h2>글 작성 방법</h2>
+      <p>
+        <code>src/content/blog/YYYY-MM/</code> 폴더에 마크다운 파일을 추가하세요.
+        frontmatter에 title, description, pubDate, tags, categories를 넣으면 됩니다.
+      </p>
+    </article>
+  </div>
+</BaseLayout>

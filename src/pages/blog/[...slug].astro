@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, getEntry, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.data.permalink ?? post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const date = post.data.pubDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article class="container">
+    <header class="post-header">
+      <h1>{post.data.title}</h1>
+      <p class="meta">{date}</p>
+      {(post.data.tags.length > 0 || post.data.categories.length > 0) && (
+        <div class="tags">
+          {post.data.categories.map((c) => (
+            <a href={`/categories/${encodeURIComponent(c)}/`} class="category">{c}</a>
+          ))}
+          {post.data.tags.map((t) => (
+            <a href={`/tags/${encodeURIComponent(t)}/`} class="tag">{t}</a>
+          ))}
+        </div>
+      )}
+    </header>
+    <div class="prose post-content">
+      <Content />
+    </div>
+    <footer class="post-footer">
+      <a href="/blog/">← 글 목록으로</a>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-header {
+    margin-bottom: 2rem;
+  }
+
+  .post-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .post-header .meta {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+  }
+
+  .post-content {
+    margin-top: 2rem;
+  }
+
+  .post-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .post-footer a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  .post-footer a:hover {
+    color: var(--color-accent-hover);
+  }
+</style>

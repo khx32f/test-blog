@@ -1,0 +1,85 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// 월별로 그룹핑
+const byMonth = allPosts.reduce<Record<string, typeof allPosts>>((acc, post) => {
+  const key = post.data.pubDate.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit' });
+  if (!acc[key]) acc[key] = [];
+  acc[key].push(post);
+  return acc;
+}, {});
+
+const months = Object.keys(byMonth).sort((a, b) => {
+  const [yA, mA] = a.split('. ');
+  const [yB, mB] = b.split('. ');
+  return Number(yB + mA) - Number(yA + mA);
+});
+---
+
+<BaseLayout title="Blog" description="블로그 글 목록">
+  <div class="container">
+    <h1>Blog</h1>
+    <p class="subtitle">월별로 정리된 글 목록입니다.</p>
+
+    {months.map((month) => (
+      <section class="month-section">
+        <h2>{month}</h2>
+        <div class="card-list">
+          {byMonth[month].map((post) => {
+            const date = post.data.pubDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+            const slug = post.data.permalink ?? post.id;
+            return (
+              <article class="card">
+                <a href={`/blog/${slug}/`} class="card-link">
+                  <h2>{post.data.title}</h2>
+                  <p class="meta">{date}</p>
+                  <p class="description">{post.data.description}</p>
+                </a>
+                <div class="tags">
+                  {post.data.categories.map((c) => (
+                    <a href={`/categories/${encodeURIComponent(c)}/`} class="category">{c}</a>
+                  ))}
+                  {post.data.tags.map((t) => (
+                    <a href={`/tags/${encodeURIComponent(t)}/`} class="tag">{t}</a>
+                  ))}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .month-section {
+    margin-bottom: 2.5rem;
+  }
+
+  .month-section h2 {
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+    font-weight: 500;
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+</style>
